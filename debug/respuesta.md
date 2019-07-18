@@ -2,7 +2,7 @@
 
 ### add_array_static.c
 
-Vi que la compilación de *add_array_static_c* me dio los siguientes warnings:
+Vi que la compilación de `add_array_static_c` me dio los siguientes warnings:
 
 ~~~~
 gcc  -c add_array_static.c -o add_array_static_c.o
@@ -46,9 +46,9 @@ Incluyo la libreria estandar <stdlib.h> en el header y ahora si se compila sin w
 The addition is -762452489
 ~~~~
 
-O sea el bug no estaba asociado al warning, probablemente gcc se daba cuenta automaticamente y agregaba <stdlib.h> pero me daba un warning. Lo interesante es que cada vez que se ejecuta el programa, la salida es diferente. Eso me hace sospechar que esta accediendo a una parte de memoria que tenga *basura*. Como no me da segfault, debe ser cercana al programa o que el programa tiene permiso de acceso. Mi conocimiento en C me da a sospechar que está relacionado al acceso de los arrays, y que la variable usada como contador está accediendo por fuera del largo del array.
+O sea el bug no estaba asociado al warning, probablemente está linkeado de forma dinamica. Lo interesante es que cada vez que se ejecuta el programa, la salida es diferente. Eso me hace sospechar que esta accediendo a una parte de memoria que tenga *basura*. Como no me da segfault, debe ser cercana al programa o que el programa tiene permiso de acceso. Mi conocimiento en C me da a sospechar que está relacionado al acceso de los arrays, y que la variable usada como contador está accediendo por fuera del largo del array.
 
-Viendo el codigo en *add_array_static.c*, noté que el ciclo **for** de la función *add_array()* es sospechoso.
+Viendo el codigo en `add_array_static.c`, noté que el ciclo `for` de la función `add_array()` es sospechoso.
 
 ~~~~c
 for (i = 0; i <= n + 1; i++) {
@@ -57,7 +57,7 @@ for (i = 0; i <= n + 1; i++) {
 };   
 ~~~~
 
-*n* es un argumento de la función y tiene como valor tres. Los arrays a y b son creados en el main y que ingresan como argumento tienen un largo de 3, y recordemos que en C, el acceso a un array de 3 elementos se accede de 0 a 2. Pero en el ciclo for aparece **i <= n + 1**, es decir los valores que el ciclo for acepta son 0,1,2,3 y 4. O sea 3 y 4 no son valores permitidos de los arrays usados por consiguiente va a estar accediendo a memoria que no forman parte de los mismos. Por una cuestion de aprender a usar la herramienta *gdb* que se enseño en este Workshop voy a verificar como evoluciona la variable *i* del ciclo *for* para comprobar lo que digo, para ello compilo agregando el flag *--debug* en el MakeFile.
+`n` es un argumento de la función y tiene como valor tres. Los arrays `a` y `b` son creados en el main y que ingresan como argumento tienen un largo de 3, y recordemos que en C, el acceso a un array de 3 elementos se accede de 0 a 2. Pero en el ciclo for aparece `i <= n + 1`, es decir los valores que el ciclo for acepta son 0,1,2,3 y 4. O sea 3 y 4 no son valores permitidos de los arrays usados por consiguiente va a estar accediendo a memoria que no forman parte de los mismos. Por una cuestion de aprender a usar la herramienta `gdb` que se enseño en este Workshop voy a verificar como evoluciona la variable `i` del ciclo `for` para comprobar lo que digo, para ello compilo agregando el flag `--debug` en el MakeFile.
 
 ~~~~
 (gdb) break 8
@@ -109,7 +109,7 @@ $7 = 1
 $8 = -863281480
 ~~~~
 
-Vemos que en efecto el contador del ciclo for está accediendo a valores que están por fuera del array y que en efecto como se observa con *print b[i]* se está accediendo a memoria *basura*.
+Vemos que en efecto el contador del ciclo for está accediendo a valores que están por fuera del array y que en efecto como se observa con `print b[i]` se está accediendo a memoria *basura*.
 
 Se corrigió el error.
 
@@ -163,7 +163,7 @@ Program received signal SIGSEGV, Segmentation fault.
 19	    b[i] = i;
 ~~~~
 
-Vemos que justamente hay una señal de SEGFAULT. Dentro de la función las variables en gdb nos da:
+Vemos que justamente hay una señal de SEGFAULT. Dentro de la función las variables en `gdb` nos da:
 
 ~~~~
 (gdb) print(a[0])
@@ -180,9 +180,9 @@ Cannot access memory at address 0x4
 Cannot access memory at address 0x8
 ~~~~
 
-Ahi se ve el error de segementación. El array **a** esta diciendo cualquier cosa, por otro lado el array **b** no esta pudiendo a acceder a direcciones de memoria 0x0, 0x4 y 0x8, esas memorias me dan un dato vital. Si se supone que cada espacio de memoria ocupan 4 bytes, serian el espacio 0, 1 y 2 (no se si la arquitectura respeta lo de 4 bytes pero parece coincidir), es decir que se envió como puntero los resultados el contenido y no la direccion de memoria del array.
+Ahi se ve el error de segementación. El array `a` esta diciendo cualquier cosa, por otro lado el array `b` no esta pudiendo a acceder a direcciones de memoria 0x0, 0x4 y 0x8, esas memorias me dan un dato vital. Si se supone que cada espacio de memoria ocupan 4 bytes, serian el espacio 0, 1 y 2 (no se si la arquitectura respeta lo de 4 bytes pero parece coincidir), es decir que se envió como puntero los resultados el contenido y no la direccion de memoria del array.
 
-Con toda esta información uno va al codigo y observa que cuando se declaran dos punteros *a* y *b*:
+Con toda esta información uno va al codigo y observa que cuando se declaran dos punteros `a` y `b`:
 
 ~~~~c
 int *a, *b;
@@ -201,7 +201,7 @@ b = bArray;
 
 ### add_array_dynamic.c
 
-Este codigo se compila y cuando se ejecuta da como resultado cero. A difenencia de los otros codigos, se usa memoria dinamica con *malloc()*.
+Este codigo se compila y cuando se ejecuta da como resultado cero. A difenencia de los otros codigos, se usa memoria dinamica con `malloc()`.
 
 El resultado es cero:
 
@@ -219,7 +219,7 @@ for (i = 1; i <= n + 1; i++) {
 };   
 ~~~~
 
-Solo para verificar se va ir viendo en *gdb* que da como salida en cada loop la función:
+Solo para verificar se va ir viendo en `gdb` que da como salida en cada loop la función:
 
 ~~~~
 (gdb) step
@@ -244,7 +244,7 @@ $5 = 3
 $6 = 0
 ~~~~
 
-En donde se ve en efecto el error. Cuando se sobrepasa la memoria, por algun motivo los espacios consiguientes hay ceros (probablemente el compilador los rellena de cero). Ajustando el ciclo *for* funciona como se espera.
+En donde se ve en efecto el error. Cuando se sobrepasa la memoria, por algun motivo los espacios consiguientes hay ceros (probablemente el compilador los rellena de cero). Ajustando el ciclo `for` funciona como se espera.
 
 ~~~~c
 for (i = 1; i < n ; i++) {
@@ -261,7 +261,7 @@ The addition is 4
 
 ### add_array_nobugs.c
 
-Se verifico el programa *add_array_nobugs.c* por si habia algo raro a pesar de su nombre, pero en efecto no se encotraron errores.
+Se verifico el programa `add_array_nobugs.c` por si habia algo raro a pesar de su nombre, pero en efecto no se encotraron errores.
 
 # Floating point exception
 
@@ -281,42 +281,20 @@ gcc -lm comparison_fpe.o ./fpe_x87_sse/fpe_x87_sse.o -o comparison_fpe.e
 
 La diferencia entre usar el flag `-DTRAPFPE` o no usarla está en el manejo de excepciones cuando ocurra un operacion que matematicamente no está definida. Por ejemplo en dividir en cero o calcular la raiz de un numero negativo. Es importante notar que estas operaciones están en punto flotante y segun entiendo se está usando la FPU del microprocesador. Estas excepciones son importantes habilitarlas, ya que un resultado NaN o Inf no necesariamente van a delatar un error, y puede arrastrarse en procesamientos mas complejos. En el programa que se nota esto es en `comparator.c` ya que si se divide por cero en el caso sin flag, el programa da un resultado, bien o mal, pero funciona. En cambio, si esta habilitado el flag, salta el error de division por cero.
 
+# Segmentation Fault
 
+### Pregunta 1
 
+El código `matmult.c` realiza una operacion con una matriz `A` y la guarda en una matriz `C`, las cuales se crean en memoria dinamica. Las matriz `A` es densa y esta formadas por puntos flotantes, de dividir la fila por la columna. La operación, tal como dice en el comentario, es una forma ineficiente de hacer `C = A * AT`, donde `AT` es la transpuesta de `A`. La diferencia cuando se usa el `MakeFile` es que `small.e` se compila con matrices de 100x100 y `big.e` con matrices de 2500x2500.
 
+### Pregunta 2
 
+Antes de hacer `ulimit -s unlimited`, `big.e` devuelve SEGFAULT y `small.e` funciona correctamente. Despues de ejecutarse `ulimit -s unlimited`, `big.e` pudo ejecutarse, aunque demoró mucho tiempo. Este comando lo que hace es aumentar la memoria stack a sin limite, la cual se utilizá para las variables declaradas dentro de las funciones (entre otras cosas), por otro lado esta el heap el cual almacena las matrices A y C cuando se utiliza `malloc()`. Al hacerse el stack sin limite, puede ejecutarse `big.e`, cuando antes daba SEGFAULT porque el stack no alcanzaba para el cálculo, antes utilizarse el comando `ulimit` es de 8192 kilobtyes, espacio insuficiente para dos matrices de 2500x2500 formada por float.
 
-Para poder compilar usando con el flag `-DTRAPFPE` y que linkee con el archivo objeto que tiene esa función, compilé con gcc de la siguiente forma:
+### Pregunta 3
 
-~~~~
-gcc -c fpe_x87_sse.c  -o fpe_x87_sse.o
-gcc -DTRAPFPE -Ifpe_x87_sse -c comparison.c -o comparison_fpe.o
-gcc -lm comparison_fpe.o ./fpe_x87_sse/fpe_x87_sse.o -o comparison_fpe.e
-~~~~
+Usar el comando `ulimit -s unlimited` no es una solución en el sentido del debugging ya que se está modificando los parametros del sistema en el que esta funcionando el programa y no el codigo.
 
+### Pregunta 4
 
-
-
-
-
-
-
-
-
-Ninguna de las opciones no c. La solución que encontré fue la que me sugirió `gcc`, agrege la libreria `<math.h>`:
-
-~~~~c
-#ifdef TRAPFPE
-#include "fpe_x87_sse.h"
-#else
-#include <math.h>
-#endif
-~~~~
-
-gcc  division.c -o division.e
-gcc  comparison.c -o comparison.e
-gcc -lm  square_root.c -o square_root.e
-
-gcc -lm -DTRAPFPE -Ifpe_x87_sse division.c ./fpe_x87_sse/fpe_x87_sse.h ./fpe_x87_sse/fpe_x87_sse.c -o division_fpe.e
-gcc -lm -DTRAPFPE -Ifpe_x87_sse comparison.c ./fpe_x87_sse/fpe_x87_sse.h ./fpe_x87_sse/fpe_x87_sse.c -o comparison_fpe.e
-gcc -lm -DTRAPFPE -Ifpe_x87_sse square_root.c ./fpe_x87_sse/fpe_x87_sse.h ./fpe_x87_sse/fpe_x87_sse.c -o square_root_fpe.e
+Una solución que implementé y funcionó fue declarar static a la variable `temp` de la funcion `mat_Tmat_mul()`. No se si es la mejor, pero logra que se independice del tamaño del stack y a tiempo de compilación ya se guarda cuanta memoria va a ocupar.
