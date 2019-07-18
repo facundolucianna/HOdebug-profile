@@ -4,7 +4,7 @@
 
 Cuando compile por primera vez todo los programas tuve los siguientes casos.
 
-### add_array_static_c*
+### add_array_static.c
 
 Vi que la compilación de *add_array_static_c* me dio los siguientes warnings:
 
@@ -61,13 +61,13 @@ for (i = 0; i <= n + 1; i++) {
 };   
 ~~~~
 
-*n* es un argumento de la función y tiene como valor tres. Los array a y b en creados en el main y que ingresan como argumento tienen un largo de 3, y recordemos que en C, el acceso a un array de 3 elementos se accede de 0 a 2. Pero en el ciclo for aparece **i <= n + 1**, es decir los valores que el ciclo for acepta son 0,1,2,3 y 4. O sea 3 y 4 no son valores permitidos de los arrays usados por consiguiente va a estar accediendo a memoria que no forman parte de los mismos. Por una cuestion de aprender a usar la herramienta *gdb* que se enseño en este Workshop voy a verificar como evoluciona la variable *i* del ciclo *for* para comprobar lo que digo, para ello compilo agregando el flag *--debug* en el MakeFile.
+*n* es un argumento de la función y tiene como valor tres. Los arrays a y b son creados en el main y que ingresan como argumento tienen un largo de 3, y recordemos que en C, el acceso a un array de 3 elementos se accede de 0 a 2. Pero en el ciclo for aparece **i <= n + 1**, es decir los valores que el ciclo for acepta son 0,1,2,3 y 4. O sea 3 y 4 no son valores permitidos de los arrays usados por consiguiente va a estar accediendo a memoria que no forman parte de los mismos. Por una cuestion de aprender a usar la herramienta *gdb* que se enseño en este Workshop voy a verificar como evoluciona la variable *i* del ciclo *for* para comprobar lo que digo, para ello compilo agregando el flag *--debug* en el MakeFile.
 
 ~~~~
 (gdb) break 8
 Breakpoint 1 at 0x116f: file add_array_static.c, line 8.
 (gdb) run
-Starting program: /home/facundo/Documents/WTPC/Dia4/HOdebug-profile/debug/bugs/add_array_static.e
+Starting program: add_array_static.e
 
 Breakpoint 1, add_array (a=0x7fffffffdfd0, b=0x7fffffffdfdc, n=3)
     at add_array_static.c:8
@@ -128,4 +128,72 @@ Se recompiló y la salida es:
 
 ~~~~
 The addition is 6
+~~~~
+
+### add_array_segfault.c
+
+Este codigo se compila y cuando se ejecuta da un error de SEGFAULT. Claramente está accediendo a memoria que no puede acceder. Mi deducción de haber trabajado en C me hace sospechar de punteros, siempre tengo problema de punteros y SEGFAULT. Voy a trabajar con el debugger para ver en detalle ademas voy a compilar con la opcion de que muestre todos los warnings.
+
+La complación me aparece el siguiente warning nuevo:
+
+~~~~
+gcc -Wall --debug -c add_array_segfault.c -o add_array_segfault_c.o
+add_array_segfault.c: In function ‘add_array’:
+add_array_segfault.c:7:12: warning: implicit declaration of function ‘abs’ [-Wimplicit-function-declaration]
+    7 |     sum += abs(a[i]);
+      |            ^~~
+add_array_segfault.c: In function ‘main’:
+add_array_segfault.c:18:6: warning: ‘a’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   18 |     a[i] = i;
+      |      ^
+add_array_segfault.c:19:6: warning: ‘b’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+   19 |     b[i] = i;
+      |      ^
+~~~~
+
+Los dos ultimos warnings viendo en internet veo un comentario de stackoverflow sobre punteros mal declarados, sospechoso :thinking:
+
+[Warning: X may be used uninitialized in this function - stackoverflow](https://stackoverflow.com/questions/12958931/warning-x-may-be-used-uninitialized-in-this-function)
+
+Veamos gdb
+
+~~~~
+(gdb) run
+Starting program: add_array_segfault.e
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00005555555551fe in main (argc=1, argv=0x7fffffffe0d8)
+    at add_array_segfault.c:19
+19	    b[i] = i;
+~~~~
+
+Vemos que justamente hay una señal de SEGFAULT. Dentro de la función las variables en gdb nos da:
+
+~~~~
+(gdb) print(a[0])
+$7 = 1
+(gdb) print(a[1])
+$8 = 0
+(gdb) print(a[2])
+$9 = -7065
+(gdb) print(b[0])
+Cannot access memory at address 0x0
+(gdb) print(b[1])
+Cannot access memory at address 0x4
+(gdb) print(b[2])
+Cannot access memory at address 0x8
+~~~~
+
+Ahi se ve el error de segementación. El array **a** esta diciendo cualquier cosa, por otro lado el array **b** no esta pudiendo a acceder a direcciones de memoria 0x0, 0x4 y 0x8, esas memorias me dan un dato vital. Si se supone que cada espacio de memoria ocupan 4 bytes, serian el espacio 0, 1 y 2 (no se si la arquitectura respeta lo de 4 bytes pero parece coincidir), es decir que se envió como puntero los resultados el contenido y no la direccion de memoria del array.
+
+Con toda esta información uno va al codigo y observa que cuando se declaran los arrays *a* y *b*, se declaran asi:
+
+~~~~c
+int *a, *b;
+~~~~
+
+Lo que está mal declarado ya que está declarando un puntero, pero nunca se tiene en cuenta el tamaño de la memoria, por lo que cuando se quiera acceder a memoria se va a acceder cualquier cosa. El array se debe declarar especificamente, se puede declarar arrays de punteros u otras variantes, pero esta no es la forma de hacerlo. El codigo se soluciona cambiando esa linea por:
+
+~~~~c
+int a[3], b[3];
 ~~~~
