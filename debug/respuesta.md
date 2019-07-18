@@ -195,29 +195,74 @@ int *a, *b;
 Y luego se los usa como arrays. Si se desea mantener que dichos punteros sean punteros, se debe modificar el codigo para dirigirlos en memoria a un array existente y luego acceder a dichos espacios del array usando la notacion en array:
 
 ~~~~c
-int add_array(int *a, int *b, int n){
-  int sum = 0;
-  int i = 0;
-  for (i = 0; i < n; i++) {
-    sum += abs(*(a + i));
-    sum += abs(*(b + i));
-  };
-  return sum;
-}
+int *a, *b;
+int aArray[3];
+int bArray[3];
 
-int main(int argc, char **argv) {
-  int *a, *b;
-  int aArray[3];
-  int bArray[3];
-  int n = 3;
-  int i, sum;
-
-  a = aArray;
-  b = bArray;
-
-  for (i = 0; i < n; i++) {
-    *(a + i) = i;
-    *(b + i) = i;
-  }
-  ...
+a = aArray;
+b = bArray;
 ~~~~
+
+### add_array_dynamic.c
+
+Este codigo se compila y cuando se ejecuta da como resultado cero. A difenencia de los otros codigos, se usa memoria dinamica con *malloc()*.
+
+El resultado es cero:
+
+~~~~
+The addition is 0
+~~~~
+
+Viendo el codigo, se observa el mismo problema que en los otros programas,
+
+~~~~c
+sum = 1
+for (i = 1; i <= n + 1; i++) {
+  sum = sum * abs(a[i]);
+  sum = sum * abs(b[i]);
+};   
+~~~~
+
+Solo para verificar se va ir viendo en *gdb* que da como salida en cada loop la función:
+
+~~~~
+(gdb) step
+7	  for (i = 1; i <= (n + 1) ; i++) {
+(gdb) step
+8	    sum = sum * abs(a[i]);
+(gdb) step
+9	    sum = sum * abs(b[i]);
+(gdb) print i
+$3 = 2
+(gdb) print sum
+$4 = 2
+(gdb) step
+7	  for (i = 1; i <= (n + 1) ; i++) {
+(gdb) step
+8	    sum = sum * abs(a[i]);
+(gdb) step
+9	    sum = sum * abs(b[i]);
+(gdb) print i
+$5 = 3
+(gdb) print sum
+$6 = 0
+~~~~
+
+En donde se ve en efecto el error. Cuando se sobrepasa la memoria, por algun motivo los espacios consiguientes hay ceros (probablemente el compilador los rellena de cero). Ajustando el ciclo *for* funciona como se espera.
+
+~~~~c
+for (i = 1; i < n ; i++) {
+  sum = sum * abs(a[i]);
+  sum = sum * abs(b[i]);
+};
+~~~~
+
+La salida es:
+
+~~~~
+The addition is 4
+~~~~
+
+### add_array_nobugs.c
+
+Se verifico el programa *add_array_nobugs.c* por si habia algo raro a pesar de su nombre, pero en efecto no se encotraron errores. 

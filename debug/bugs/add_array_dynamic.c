@@ -2,9 +2,9 @@
 #include <stdlib.h>
 
 int add_array(int *a, int *b, int n){
-  int sum = 0;
+  int sum = 1;
   int i = 0;
-  for (i = 0; i <= n + 1; i++) {
+  for (i = 1; i < n ; i++) {
     sum = sum * abs(a[i]);
     sum = sum * abs(b[i]);
   };
