@@ -1,9 +1,5 @@
 # Sección Bugs
 
-## Primera compilación
-
-Cuando compile por primera vez todo los programas tuve los siguientes casos.
-
 ### add_array_static.c
 
 Vi que la compilación de *add_array_static_c* me dio los siguientes warnings:
@@ -265,4 +261,62 @@ The addition is 4
 
 ### add_array_nobugs.c
 
-Se verifico el programa *add_array_nobugs.c* por si habia algo raro a pesar de su nombre, pero en efecto no se encotraron errores. 
+Se verifico el programa *add_array_nobugs.c* por si habia algo raro a pesar de su nombre, pero en efecto no se encotraron errores.
+
+# Floating point exception
+
+### Pregunta 1
+
+La función que requiere agregar `-DTRAPFPE` es `set_fpe_x87_sse()`.
+
+Para poder compilar usando con el flag `-DTRAPFPE` y que linkee con el archivo objeto que tiene esa función, compilé con gcc de la siguiente forma:
+
+~~~~
+gcc -c fpe_x87_sse.c  -o fpe_x87_sse.o
+gcc -DTRAPFPE -Ifpe_x87_sse -c comparison.c -o comparison_fpe.o
+gcc -lm comparison_fpe.o ./fpe_x87_sse/fpe_x87_sse.o -o comparison_fpe.e
+~~~~
+
+### Pregunta 2
+
+La diferencia entre usar el flag `-DTRAPFPE` o no usarla está en el manejo de excepciones cuando ocurra un operacion que matematicamente no está definida. Por ejemplo en dividir en cero o calcular la raiz de un numero negativo. Es importante notar que estas operaciones están en punto flotante y segun entiendo se está usando la FPU del microprocesador. Estas excepciones son importantes habilitarlas, ya que un resultado NaN o Inf no necesariamente van a delatar un error, y puede arrastrarse en procesamientos mas complejos. En el programa que se nota esto es en `comparator.c` ya que si se divide por cero en el caso sin flag, el programa da un resultado, bien o mal, pero funciona. En cambio, si esta habilitado el flag, salta el error de division por cero.
+
+
+
+
+
+
+Para poder compilar usando con el flag `-DTRAPFPE` y que linkee con el archivo objeto que tiene esa función, compilé con gcc de la siguiente forma:
+
+~~~~
+gcc -c fpe_x87_sse.c  -o fpe_x87_sse.o
+gcc -DTRAPFPE -Ifpe_x87_sse -c comparison.c -o comparison_fpe.o
+gcc -lm comparison_fpe.o ./fpe_x87_sse/fpe_x87_sse.o -o comparison_fpe.e
+~~~~
+
+
+
+
+
+
+
+
+
+
+Ninguna de las opciones no c. La solución que encontré fue la que me sugirió `gcc`, agrege la libreria `<math.h>`:
+
+~~~~c
+#ifdef TRAPFPE
+#include "fpe_x87_sse.h"
+#else
+#include <math.h>
+#endif
+~~~~
+
+gcc  division.c -o division.e
+gcc  comparison.c -o comparison.e
+gcc -lm  square_root.c -o square_root.e
+
+gcc -lm -DTRAPFPE -Ifpe_x87_sse division.c ./fpe_x87_sse/fpe_x87_sse.h ./fpe_x87_sse/fpe_x87_sse.c -o division_fpe.e
+gcc -lm -DTRAPFPE -Ifpe_x87_sse comparison.c ./fpe_x87_sse/fpe_x87_sse.h ./fpe_x87_sse/fpe_x87_sse.c -o comparison_fpe.e
+gcc -lm -DTRAPFPE -Ifpe_x87_sse square_root.c ./fpe_x87_sse/fpe_x87_sse.h ./fpe_x87_sse/fpe_x87_sse.c -o square_root_fpe.e
