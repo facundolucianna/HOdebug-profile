@@ -5,8 +5,8 @@ int add_array(int *a, int *b, int n){
   int sum = 0;
   int i = 0;
   for (i = 0; i <= n + 1; i++) {
-    sum += abs(a[i]);
-    sum += abs(b[i]);
+    sum = sum * abs(a[i]);
+    sum = sum * abs(b[i]);
   };
   return sum;
 }
