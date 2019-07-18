@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 int add_array(int *a, int *b, int n){
   int sum = 0;

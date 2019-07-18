@@ -186,14 +186,38 @@ Cannot access memory at address 0x8
 
 Ahi se ve el error de segementación. El array **a** esta diciendo cualquier cosa, por otro lado el array **b** no esta pudiendo a acceder a direcciones de memoria 0x0, 0x4 y 0x8, esas memorias me dan un dato vital. Si se supone que cada espacio de memoria ocupan 4 bytes, serian el espacio 0, 1 y 2 (no se si la arquitectura respeta lo de 4 bytes pero parece coincidir), es decir que se envió como puntero los resultados el contenido y no la direccion de memoria del array.
 
-Con toda esta información uno va al codigo y observa que cuando se declaran los arrays *a* y *b*, se declaran asi:
+Con toda esta información uno va al codigo y observa que cuando se declaran dos punteros *a* y *b*:
 
 ~~~~c
 int *a, *b;
 ~~~~
 
-Lo que está mal declarado ya que está declarando un puntero, pero nunca se tiene en cuenta el tamaño de la memoria, por lo que cuando se quiera acceder a memoria se va a acceder cualquier cosa. El array se debe declarar especificamente, se puede declarar arrays de punteros u otras variantes, pero esta no es la forma de hacerlo. El codigo se soluciona cambiando esa linea por:
+Y luego se los usa como arrays. Si se desea mantener que dichos punteros sean punteros, se debe modificar el codigo para dirigirlos en memoria a un array existente y luego acceder a dichos espacios del array usando la notacion en array:
 
 ~~~~c
-int a[3], b[3];
+int add_array(int *a, int *b, int n){
+  int sum = 0;
+  int i = 0;
+  for (i = 0; i < n; i++) {
+    sum += abs(*(a + i));
+    sum += abs(*(b + i));
+  };
+  return sum;
+}
+
+int main(int argc, char **argv) {
+  int *a, *b;
+  int aArray[3];
+  int bArray[3];
+  int n = 3;
+  int i, sum;
+
+  a = aArray;
+  b = bArray;
+
+  for (i = 0; i < n; i++) {
+    *(a + i) = i;
+    *(b + i) = i;
+  }
+  ...
 ~~~~
