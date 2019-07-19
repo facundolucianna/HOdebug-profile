@@ -337,8 +337,7 @@ En todo el reporte que se obtiene en `valgrind-out_flag.txt`, la parte mas inter
 
 En donde nos indica que hubo memory leackage y en que zonas se generaron esas memorias (gracias a que use el flag `-ggdb`). Con esa información pude identificar en el codigo que se creaba una memoria dinamica en la función `mysub()`, pero nunca era liberada, por lo que una vez que el puntero usado se volvia a utilizar (en en un nuevo `malloc()`), se perdia la memoria correspondiente. Se corrigio de la siguiente forma:
 
-~~~~
-c
+~~~~c
 int main(int argc, char *argv[])
 {
  ...
