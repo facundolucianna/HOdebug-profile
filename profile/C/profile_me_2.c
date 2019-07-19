@@ -9,11 +9,11 @@ int main( int argc, char * argv[] )
   double alpha;
 
   int i;
-  
+
   size_t dim;
-  
+
   dim = atoi(argv[1]);
- 
+
   a = (double *) malloc( dim * sizeof( double ) );
   b = (double *) malloc( dim * sizeof( double ) );
   c = (double *) malloc( dim * sizeof( double ) );
@@ -26,23 +26,23 @@ int main( int argc, char * argv[] )
   }
 
   for( i = 0; i < dim; i++ ){
-    
+
     a[i] = exp( a[i] * i );
   }
 
   for( i = 0; i < dim; i++ ){
-    
+
     a[i] = sqrt( a[i] * i );
   }
 
-  for( i = 0; i < dim; i++ ){
-    
+ for( i = 0; i < dim; i++ ){
+
     a[i] = sin( a[i] * i );
   }
 
   alpha = 0.0;
   for( i = 0; i < dim; i++ ){
-    alpha += a[i] + b[i] + c[i];
+    alpha += a[i]; //+ b[i] + c[i];
   }
 
   printf( "%g", alpha );
@@ -53,4 +53,3 @@ int main( int argc, char * argv[] )
 
   return 0;
 }
-    
