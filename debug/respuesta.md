@@ -382,3 +382,26 @@ Para poder ejecutar valgrid y ver el reporte, se quito el loop infinito y se rea
 ~~~~
 
 En donde se observa en donde ocurrió el memory leackage. Viendo el codigo se observa que la función `mat_Tmat_mul()` genera una memoria dinamica con `malloc()` temporal, pero nunca la libera cuando termina la función. Corregido eso y volviendo a el loop infinito, se observa ahora que la memoria no aumenta aunque se ejecuta durante un tiempo muy largo.
+
+# Funny
+
+El flag `-DDEBUG` le indica al pre-procesador que incluya los codigos que están entre:
+
+~~~~c
+#ifdef DEBUG
+...
+#endif
+~~~~
+
+La idea que observo en el codigo de estas porciones de codigo es que funcionen los clásicos `printf()` que uno usa a diestra y siniestra pero de una forma mucho mas prolija y que no sea necesario andar comentando y descomentando cada vez que compila el código.
+
+Sobre el bug en particular que hay no voy a comentar mucho porque no es un bug, básicamente está hecho para romperse
+
+~~~~c
+for(i=0; i<mydim; i++)
+  {
+    a[i+1000] = a[i];
+  }
+~~~~
+
+No sé que busca ese código para poderse corregirse.
