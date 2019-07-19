@@ -298,3 +298,88 @@ Usar el comando `ulimit -s unlimited` no es una solución en el sentido del debu
 ### Pregunta 4
 
 Una solución que implementé y funcionó fue declarar static a la variable `temp` de la funcion `mat_Tmat_mul()`. No se si es la mejor, pero logra que se independice del tamaño del stack y a tiempo de compilación ya se guarda cuanta memoria va a ocupar.
+
+# Valgrind
+
+Desarrolle los casos de C.
+
+### test_oob4.c
+
+Para testear este codigo, hice un estudio de memory leackage siguiendo lo que esta en esta pregunta de stackoverflow:
+
+[How do I use valgrind to find memory leaks? - stackoverflow](https://stackoverflow.com/questions/5134891/how-do-i-use-valgrind-to-find-memory-leaks)
+
+Lo compile usando:
+
+~~~~
+gcc -Wall -ggdb3 test_oob4.c -o test_oob4_flag.e
+~~~~
+
+Ejecute valgrind usando:
+
+~~~~
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-out_flag.txt ./test_oob4_flag.e
+~~~~
+
+En todo el reporte que se obtiene en `valgrind-out_flag.txt`, la parte mas interesante fue:
+
+~~~~
+==3895== 160,000,000 bytes in 4 blocks are definitely lost in loss record 1 of 2
+==3895==    at 0x483877F: malloc (vg_replace_malloc.c:299)
+==3895==    by 0x1091A8: mysub (test_oob4.c:10)
+==3895==    by 0x10924E: main (test_oob4.c:32)
+==3895==
+==3895== 200,000,000 bytes in 5 blocks are possibly lost in loss record 2 of 2
+==3895==    at 0x483877F: malloc (vg_replace_malloc.c:299)
+==3895==    by 0x1091A8: mysub (test_oob4.c:10)
+==3895==    by 0x10924E: main (test_oob4.c:32)
+~~~~
+
+En donde nos indica que hubo memory leackage y en que zonas se generaron esas memorias (gracias a que use el flag `-ggdb`). Con esa información pude identificar en el codigo que se creaba una memoria dinamica en la función `mysub()`, pero nunca era liberada, por lo que una vez que el puntero usado se volvia a utilizar (en en un nuevo `malloc()`), se perdia la memoria correspondiente. Se corrigio de la siguiente forma:
+
+~~~~
+c
+int main(int argc, char *argv[])
+{
+ ...
+ float lastf = 0.0;
+
+ printf("Insert last \n");
+ scanf("%d",&last);
+ for(i=0; i<last; i++)
+   {
+     mysub(&a, mydim);
+     lastf = a[0];
+     free(a);
+   }
+   ...
+~~~~
+
+### source1.c
+
+En este caso se realizó lo que está escrito en la cabecera del archivo. Al compilarse y ejecutarse, se observa que la memoria crece lentamente pero inexorablemente en algun momento se quedará sin memoria (viendo con el comando `htop` en otra consola).
+
+Para poder ejecutar valgrid y ver el reporte, se quito el loop infinito y se realizo que la función dentro del loop se ejecute una sola vez. Una vez ejecutada, se observó en el reporte `valgrind_source1_flag.txt`
+
+~~~~
+==4941== HEAP SUMMARY:
+==4941==     in use at exit: 4,000,000 bytes in 1 blocks
+==4941==   total heap usage: 3 allocs, 2 frees, 12,000,000 bytes allocated
+==4941==
+==4941== Searching for pointers to 1 not-freed blocks
+==4941== Checked 73,784 bytes
+==4941==
+==4941== 4,000,000 bytes in 1 blocks are definitely lost in loss record 1 of 1
+==4941==    at 0x483877F: malloc (vg_replace_malloc.c:299)
+==4941==    by 0x109235: mat_Tmat_mul (source1.c:30)
+==4941==    by 0x1090F9: main (source1.c:60)
+==4941==
+==4941== LEAK SUMMARY:
+==4941==    definitely lost: 4,000,000 bytes in 1 blocks
+==4941==    indirectly lost: 0 bytes in 0 blocks
+==4941==      possibly lost: 0 bytes in 0 blocks
+==4941==    still reachable: 0 bytes in 0 blocks
+==4941==         suppressed: 0 bytes in 0 blocks
+~~~~
+
+En donde se observa en donde ocurrió el memory leackage. Viendo el codigo se observa que la función `mat_Tmat_mul()` genera una memoria dinamica con `malloc()` temporal, pero nunca la libera cuando termina la función. Corregido eso y volviendo a el loop infinito, se observa ahora que la memoria no aumenta aunque se ejecuta durante un tiempo muy largo.
