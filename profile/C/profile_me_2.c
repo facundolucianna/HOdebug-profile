@@ -42,7 +42,7 @@ int main( int argc, char * argv[] )
 
   alpha = 0.0;
   for( i = 0; i < dim; i++ ){
-    alpha += a[i]; //+ b[i] + c[i];
+    alpha += a[i] + b[i] + c[i];
   }
 
   printf( "%g", alpha );

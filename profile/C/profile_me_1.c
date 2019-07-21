@@ -3,7 +3,7 @@
 
 #define SIZE 5000
 
-double a[SIZE][SIZE], b[SIZE][SIZE], c[SIZE][SIZE];
+
 
 void first_assign(int i1, int i2, double * a, double * b, double * c )
 {
@@ -18,6 +18,7 @@ void second_assign(int i1, int i2, double * a, double * b, double * c )
 int main( int argc, char * argv[] )
 {
 
+  double a[SIZE][SIZE], b[SIZE][SIZE], c[SIZE][SIZE];
   int i, j;
 
   for( i = 0; i < SIZE; i++ ){
